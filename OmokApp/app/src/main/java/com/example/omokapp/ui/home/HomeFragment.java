@@ -15,13 +15,14 @@ import com.example.omokapp.Enums.GameState;
 import com.example.omokapp.Enums.PutError;
 import com.example.omokapp.OmokBoards.BoardView;
 import com.example.omokapp.OmokBoards.OnBoardTouchListener;
+import com.example.omokapp.OmokRules.OpenRule;
 import com.example.omokapp.OmokRules.RenjuRule;
 import com.example.omokapp.databinding.FragmentHomeBinding;
 
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
-    private RenjuRule engine;
+    private OpenRule engine;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -30,7 +31,7 @@ public class HomeFragment extends Fragment {
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
-        engine = new RenjuRule();
+        engine = new OpenRule();
         BoardView boardView = binding.testBoard;
 
         boardView.setOnTouchListener(new OnBoardTouchListener() {
@@ -41,6 +42,8 @@ public class HomeFragment extends Fragment {
                     Log.d("HomeFragment", "put error: "+ PutError.fromCode(code));
                 else if(code > 2)
                     Log.d("HomeFragment", "game end: "+ GameState.fromCode(code));
+                else if(code == 0)
+                    Log.d("HomeFragment", "initial code returned: "+code);
                 boardView.refresh(engine.getBoard());
             }
         });

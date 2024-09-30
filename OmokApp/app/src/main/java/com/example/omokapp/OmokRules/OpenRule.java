@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OpenRule {
+    // 금수 체크부분 고쳐야함
     protected int[][] board;
     protected List<Integer> history;
     protected GameState state;
@@ -62,42 +63,30 @@ public class OpenRule {
     }
 
     protected int countConsecutive(int x, int y){
-        int color = getColor(x, y);
-        int dx, dy, count, result = 0;
+        int color = getColor(x, y), dx, dy, count, max = 0;
         boolean left, right;
-
-        for(int i=0; i<4; i++){
-            count = 0;
+        for(int d=0; d<4; d++){
             left = true;
             right = true;
+            count = 0;
             for(int l=1; l<=4; l++){
                 if(left){
-                    dx = x + DIRX[i]*l;
-                    dy = y + DIRY[i]*l;
-                    if(getColor(dx, dy) == color)
-                        count++;
-                    else{
-                        left = false;
-                        break;
-                    }
+                    dx = x + DIRX[d] * l;
+                    dy = y + DIRY[d] * l;
+                    if(getColor(dx, dy) == color) count++;
+                    else left = false;
                 }
                 if(right){
-                    dx = x - DIRX[i]*l;
-                    dy = y - DIRY[i]*l;
-                    if(getColor(dx, dy) == color)
-                        count++;
-                    else{
-                        right = false;
-                        break;
-                    }
+                    dx = x - DIRX[d] * l;
+                    dy = y - DIRY[d] * l;
+                    if(getColor(dx, dy) == color) count++;
+                    else right = false;
                 }
             }
-            if(count == 5) return 5; // return 5 first
-            else if(count > 5)
-                result = Math.max(result, count);
-
+            if(count == 5) return 5;
+            max = Math.max(max, count);
         }
-        return result;
+        return max;
     }
 
     protected boolean indexOut(int x, int y){
@@ -123,4 +112,10 @@ public class OpenRule {
     }
 
     public int[][] getBoard(){ return board; }
+    public int[] getLastHistory(){
+        int num = history.size()-1;
+        int coordinate = history.get(num);
+        int[] result = {getX(coordinate), getY(coordinate), num+1};
+        return result;
+    }
 }

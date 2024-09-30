@@ -4,12 +4,12 @@ import com.example.omokapp.Enums.GameState;
 
 public class RenjuRule extends OpenRule {
 
-    private final int[][] FOUR_EXCEPTIONS = {
+    private static final int[][] FOUR_EXCEPTIONS = {
             {-1, 1, 1, 1, 0, 0, 0, 1, 1, 1, -1},
             {-1, 1, 0, 1, 0, 1, 0, 1, -1}
     };
-    private final int[] FIVE = {-1, 1, 1, 1, 1, 1, -1};
-    private final int[] OPEN_FOUR = {-1, 0, 1, 1, 1, 1, 0, -1};
+    private static final int[] FIVE = {-1, 1, 1, 1, 1, 1, -1};
+    private static final int[] OPEN_FOUR = {-1, 0, 1, 1, 1, 1, 0, -1};
 
     @Override
     public int put(int x, int y){
