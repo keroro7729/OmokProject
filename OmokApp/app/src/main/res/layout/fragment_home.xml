@@ -6,13 +6,75 @@
     android:layout_height="match_parent"
     tools:context=".ui.home.HomeFragment">
 
-    <com.example.omokapp.OmokBoards.BoardView
-        android:id="@+id/test_board"
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/send_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SEND" />
+
+        </LinearLayout>
+
+        <com.example.omokapp.OmokBoards.BoardView
+            android:id="@+id/test_board"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/prevprev_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="&lt;&lt;" />
+            <Button
+                android:id="@+id/prev_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="&lt;" />
+            <TextView
+                android:id="@+id/numberView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#E0E0E0"
+                android:text="1"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:padding="16dp"
+                android:layout_margin="8dp"
+                android:gravity="center" />
+            <Button
+                android:id="@+id/next_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="&gt;" />
+            <Button
+                android:id="@+id/nextnext_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="&gt;&gt;" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

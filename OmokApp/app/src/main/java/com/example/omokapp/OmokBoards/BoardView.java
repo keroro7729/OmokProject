@@ -12,8 +12,8 @@ import android.view.View;
 public class BoardView extends View {
     private int[][] board;
     private int lastCoordinate, width;
-    private float cellSize, stoneSize, padding;
-    private Paint linePaint, blackPaint, whitePaint;
+    private float cellSize, stoneSize, padding, xLen;
+    private Paint linePaint, blackPaint, whitePaint, redPaint;
     private OnBoardTouchListener onTouchListener;
     private static final int BOARD_SIZE = 15;
 
@@ -42,6 +42,10 @@ public class BoardView extends View {
 
         whitePaint = new Paint();
         whitePaint.setColor(Color.WHITE);
+
+        redPaint = new Paint();
+        redPaint.setColor(Color.RED);
+        redPaint.setStrokeWidth(6);
     }
 
     public void setOnTouchListener(OnBoardTouchListener listener){
@@ -55,13 +59,12 @@ public class BoardView extends View {
         cellSize = width / (float)BOARD_SIZE;
         stoneSize = cellSize / 2.1f;
         padding = cellSize / 2.0f;
+        xLen = cellSize / 3.0f;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
-        // set background color
         canvas.drawColor(Color.GRAY);
 
         // draw lines
@@ -70,15 +73,19 @@ public class BoardView extends View {
             canvas.drawLine(i * cellSize + padding, padding, i * cellSize + padding, width - padding, linePaint);
         }
 
-        // draw stones
+        // draw board
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
-                if (board[i][j] != 0) {
-                    float centerX = i * cellSize + padding;
-                    float centerY = j * cellSize + padding;
+                float centerX = i * cellSize + padding;
+                float centerY = j * cellSize + padding;
+                if (board[i][j] > 0) {
                     if (board[i][j] % 2 != 0)
                         canvas.drawCircle(centerX, centerY, stoneSize, blackPaint);
                     else canvas.drawCircle(centerX, centerY, stoneSize, whitePaint);
+                }
+                else if(board[i][j] < 0){
+                    canvas.drawLine(centerX - xLen, centerY - xLen, centerX + xLen, centerY + xLen, redPaint);
+                    canvas.drawLine(centerX + xLen, centerY - xLen, centerX - xLen, centerY + xLen, redPaint);
                 }
             }
         }
@@ -91,7 +98,7 @@ public class BoardView extends View {
             float y = event.getY();
             int row = (int) ((x) / cellSize);
             int col = (int) ((y) / cellSize);
-            Log.d("BoardView", "click: "+row+", "+col);
+            //Log.d("BoardView", "click: "+row+", "+col);
             lastCoordinate = row * BOARD_SIZE + col;
             if(onTouchListener != null)
                 onTouchListener.onTouch(lastCoordinate);

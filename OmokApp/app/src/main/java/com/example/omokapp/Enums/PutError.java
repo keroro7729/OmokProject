@@ -1,10 +1,10 @@
 package com.example.omokapp.Enums;
 
 public enum PutError {
-    not_playing(-1),
-    index_out(-2),
-    not_empty(-3),
-    prohibition(-4);
+    not_playing(-11),
+    index_out(-12),
+    not_empty(-13),
+    prohibition(-14);
 
     private final int code;
 

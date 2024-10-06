@@ -1,52 +1,54 @@
 package com.example.omokapp.OmokRules;
 
+import android.util.Log;
+
+import com.example.omokapp.Enums.CellState;
 import com.example.omokapp.Enums.GameState;
+import com.example.omokapp.Enums.PutError;
+
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 public class RenjuRule extends OpenRule {
 
-    private final int[][] FOUR_EXCEPTIONS = {
+    private static final int[][] FOUR_EXCEPTIONS = {
             {-1, 1, 1, 1, 0, 0, 0, 1, 1, 1, -1},
             {-1, 1, 0, 1, 0, 1, 0, 1, -1}
     };
-    private final int[] FIVE = {-1, 1, 1, 1, 1, 1, -1};
-    private final int[] OPEN_FOUR = {-1, 0, 1, 1, 1, 1, 0, -1};
+    private static final int[] FIVE = {-1, 1, 1, 1, 1, 1, -1};
+    private static final int[] OPEN_FOUR = {-1, 0, 1, 1, 1, 1, 0, -1};
 
     @Override
     public int put(int x, int y){
         if(state != GameState.black_playing &&
-           state != GameState.white_playing) return -1;
-        if(indexOut(x, y)) return -2;
-        if(board[x][y] != 0) return -3;
+           state != GameState.white_playing)
+            return PutError.not_playing.getCode();
+        else if(indexOut(x, y))
+            return PutError.index_out.getCode();
+        else if(board[x][y] > 0)
+            return PutError.not_empty.getCode();
+        else if(board[x][y] < 0 && state == GameState.black_playing)
+            return PutError.prohibition.getCode();
 
         history.add(getCoordinate(x, y));
         board[x][y] = history.size();
 
-        int count = countConsecutive(x, y);
-        if(count >= 5){
-            if(state == GameState.black_playing && count == 5){
+        if(isOmok(x, y)){
+            if(state == GameState.black_playing){
                 state = GameState.black_win;
                 return state.getCode();
-            }
-            else if(state == GameState.black_playing && count > 5){
-                // six prohibition
-                history.remove(history.size()-1);
-                board[x][y] = 0;
-                return -4;
             }
             else if(state == GameState.white_playing){
                 state = GameState.white_win;
                 return state.getCode();
             }
         }
-        else if(isProhibition(x, y)){
-            history.remove(history.size()-1);
-            board[x][y] = 0;
-            return -4;
-        }
         else if(history.size() >= DRAW_THRESHOLD){
             state = GameState.draw;
             return state.getCode();
         }
+        verifyBoard();
 
         if(state == GameState.black_playing)
             state = GameState.white_playing;
@@ -57,25 +59,54 @@ public class RenjuRule extends OpenRule {
 
     @Override
     protected boolean isOmok(int x, int y){
+        Log.d("RenjuRule", "countConsecutive result: "+countConsecutive(x, y));
         if(state == GameState.black_playing)
-            return countConsecutive(x, y) == 5;
-        else return countConsecutive(x, y) >= 5;
-    }
-
-    protected boolean isProhibition(int x, int y){
-        if(state != GameState.black_playing) return false;
-        if(isFourProhibition(x, y)) return true;
-        if(isThreeProhibition(x, y)) return true;
+            return countConsecutive(x, y, 1) == 5;
+        else if(state == GameState.white_playing)
+            return countConsecutive(x, y, 2) >= 5;
+        Log.e("RenjuRule", "isOmok() reached unexpected code");
         return false;
     }
 
+    protected void verifyBoard(){
+        // init & check six prohibition
+        Set<Integer> list = new HashSet<>();
+        for(int coor=0; coor<BOARD_SIZE*BOARD_SIZE; coor++){
+            if(getCell(coor) > 0) continue;
+            int count = countConsecutive(getX(coor), getY(coor), 1);
+            if(count > 5) setCell(coor, CellState.six_prohibition.getCode());
+            else if(count != 5) {
+                setCell(coor, 0);
+                list.add(coor);
+            }
+        }
+        // check four prohibition
+        Set<Integer> tmp = new HashSet<>();
+        for(int coor : list)
+            if(isFourProhibition(coor))
+                tmp.add(coor);
+        for(int coor : tmp)
+            setCell(coor, CellState.four_prohibition.getCode());
+        list.removeAll(tmp);
+        tmp.clear();
+        // check three prohibition
+        for(int coor : list)
+            if(isThreeProhibition(coor))
+                tmp.add(coor);
+        for(int coor : tmp)
+            setCell(coor, CellState.three_prohibition.getCode());
+    }
+
+    protected boolean isFourProhibition(int coor){
+        return isFourProhibition(getX(coor), getY(coor));
+    }
     protected boolean isFourProhibition(int x, int y){
         for(int d=0; d<4; d++){
             for(int[] pattern : FOUR_EXCEPTIONS){
                 int dx = x - DIRX[d] * (pattern.length/2);
                 int dy = y - DIRY[d] * (pattern.length/2);
-                if(perfectMatch(dx, dy, d, pattern))
-                    return true;
+                if(indexOut(dx, dy)) continue;
+                if(perfectMatch(dx, dy, d, pattern)) return true;
             }
         }
 
@@ -84,6 +115,7 @@ public class RenjuRule extends OpenRule {
             for(int l=1-FIVE.length; l<=0; l++){
                 int dx = x + DIRX[d] * l;
                 int dy = y + DIRY[d] * l;
+                //if(indexOut(dx, dy)) continue;//
                 if(almostMatch(dx, dy, d, FIVE) != -1){
                     count++;
                     break;
@@ -93,14 +125,11 @@ public class RenjuRule extends OpenRule {
         return count >= 2;
     }
 
-    protected boolean putAndCheckFourProhibition(int x, int y){
-        board[x][y] = 1;
-        boolean result = isFourProhibition(x, y);
-        board[x][y] = 0;
-        return result;
+    protected boolean isThreeProhibition(int coor){
+        return isThreeProhibition(getX(coor), getY(coor));
     }
-
     protected boolean isThreeProhibition(int x, int y){
+        board[x][y] = 1;
         int count = 0;
         for(int d=0; d<4; d++){
             for(int l=1-OPEN_FOUR.length; l<=0; l++){
@@ -111,7 +140,7 @@ public class RenjuRule extends OpenRule {
 
                 // check false prohibition
                 int ddx = getX(coordinate), ddy = getY(coordinate);
-                if(!putAndCheckFourProhibition(ddx, ddy)){
+                if(!isFourProhibition(ddx, ddy)){
                     count++;
                     break;
                 }
@@ -121,7 +150,7 @@ public class RenjuRule extends OpenRule {
                     ddx += DIRX[d] * 5;
                     ddy += DIRY[d] * 5;
                     if(indexOut(ddx, ddy) || board[ddx][ddy] != 0) continue;
-                    if(putAndCheckFourProhibition(ddx, ddy)) continue;
+                    if(isFourProhibition(ddx-DIRX[d], ddy-DIRY[d])) continue;
                     count++;
                     break;
                 }
@@ -129,13 +158,20 @@ public class RenjuRule extends OpenRule {
                     ddx -= DIRX[d] * 5;
                     ddy -= DIRY[d] * 5;
                     if(indexOut(ddx, ddy) || board[ddx][ddy] != 0) continue;
-                    if(putAndCheckFourProhibition(ddx, ddy)) continue;
+                    if(isFourProhibition(ddx+DIRX[d], ddy+DIRY[d])) continue;
                     count++;
                     break;
                 }
             }
         }
+        board[x][y] = 0;
         return count >= 2;
+    }
+    protected boolean putAndCheckFourProhibition(int x, int y){
+        board[x][y] = 1;
+        boolean result = isFourProhibition(x, y);
+        board[x][y] = 0;
+        return result;
     }
 
     protected int almostMatch(int x, int y, int d, int[] pattern){
@@ -144,17 +180,17 @@ public class RenjuRule extends OpenRule {
             int dx = x + DIRX[d] * i, dy = y + DIRY[d] * i;
             if(pattern[i] == -1){
                 if(indexOut(dx, dy)) continue;
-                if(isBlack(dx, dy)) return -1;
+                else if(isBlack(dx, dy)) return -1;
             }
             else if(pattern[i] == 0){
                 if(indexOut(dx, dy)) return -1;
-                if(board[dx][dy] > 0) return -1;
+                else if(board[dx][dy] != 0) return -1;
             }
             else if(pattern[i] == 1){
                 if(indexOut(dx, dy)) return -1;
-                if(isBlack(dx, dy)){
-                    if(board[x][y] > 0) return -1;
-                    if(coor == -1) coor = getCoordinate(dx, dy);
+                if(!isBlack(dx, dy)){
+                    if(board[dx][dy] != 0) return -1;
+                    else if(coor == -1) coor = getCoordinate(dx, dy);
                     else return -1;
                 }
             }
@@ -166,16 +202,16 @@ public class RenjuRule extends OpenRule {
         for(int i=0; i<pattern.length; i++){
             int dx = x + DIRX[d] * i, dy = y + DIRY[d] * i;
             if(pattern[i] == -1){
-                if(indexOut(x, y)) continue;
-                if(isBlack(dx, dy)) return false;
+                if(indexOut(dx, dy)) continue;
+                else if(isBlack(dx, dy)) return false;
             }
             else if(pattern[i] == 0){
                 if(indexOut(dx, dy)) return false;
-                if(board[dx][dy] > 0) return false;
+                else if(board[dx][dy] != 0) return false;
             }
             else if(pattern[i] == 1){
                 if(indexOut(dx, dy)) return false;
-                if(isBlack(dx, dy)) return false;
+                else if(!isBlack(dx, dy)) return false;
             }
         }
         return true;
@@ -184,4 +220,6 @@ public class RenjuRule extends OpenRule {
     protected boolean isBlack(int x, int y){
         return board[x][y]%2 == 1;
     }
+    protected int getCell(int coordinate){ return board[getX(coordinate)][getY(coordinate)]; }
+    protected void setCell(int coordinate, int state){ board[getX(coordinate)][getY(coordinate)] = state; }
 }

@@ -17,6 +17,9 @@ public class OpenRule {
     protected final int BOARD_SIZE = 15;
 
     public OpenRule(){
+        init();
+    }
+    protected void init(){
         board = new int[BOARD_SIZE][BOARD_SIZE];
         history = new ArrayList<>();
         state = GameState.black_playing;
@@ -49,6 +52,7 @@ public class OpenRule {
                 return state.getCode();
             }
         }
+
         if(state == GameState.black_playing)
             state = GameState.white_playing;
         else if(state == GameState.white_playing)
@@ -63,39 +67,27 @@ public class OpenRule {
 
     protected int countConsecutive(int x, int y){
         int color = getColor(x, y);
+        return countConsecutive(x, y, color);
+    }
+    protected int countConsecutive(int x, int y, int color){
         int dx, dy, count, result = 0;
-        boolean left, right;
-
-        for(int i=0; i<4; i++){
+        for(int d=0; d<4; d++){
             count = 0;
-            left = true;
-            right = true;
-            for(int l=1; l<=4; l++){
-                if(left){
-                    dx = x + DIRX[i]*l;
-                    dy = y + DIRY[i]*l;
-                    if(getColor(dx, dy) == color)
-                        count++;
-                    else{
-                        left = false;
-                        break;
-                    }
-                }
-                if(right){
-                    dx = x - DIRX[i]*l;
-                    dy = y - DIRY[i]*l;
-                    if(getColor(dx, dy) == color)
-                        count++;
-                    else{
-                        right = false;
-                        break;
-                    }
-                }
+            for(int l=1; l<=4; l++) {
+                dx = x + DIRX[d] * l;
+                dy = y + DIRY[d] * l;
+                if (indexOut(dx, dy) || getColor(dx, dy) != color) break;
+                else count++;
             }
+            for(int l=1; l<=4; l++){
+                dx = x - DIRX[d]*l;
+                dy = y - DIRY[d]*l;
+                if(indexOut(dx, dy) || getColor(dx, dy) != color) break;
+                else count++;
+            }
+            count++;
             if(count == 5) return 5; // return 5 first
-            else if(count > 5)
-                result = Math.max(result, count);
-
+            result = Math.max(result, count);
         }
         return result;
     }
@@ -123,4 +115,6 @@ public class OpenRule {
     }
 
     public int[][] getBoard(){ return board; }
+    public List<Integer> getHistory(){ return history; }
+    public GameState getState(){ return state; }
 }
