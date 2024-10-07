@@ -7,6 +7,6 @@ import retrofit2.http.Body;
 import retrofit2.http.POST;
 
 public interface ApiService {
-    @POST("/add_omok_data")
+    @POST("/api/add_omok_data")
     Call<Void> addOmokData(@Body AddOmokDataRequest request);
 }
