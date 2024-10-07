@@ -220,6 +220,4 @@ public class RenjuRule extends OpenRule {
     protected boolean isBlack(int x, int y){
         return board[x][y]%2 == 1;
     }
-    protected int getCell(int coordinate){ return board[getX(coordinate)][getY(coordinate)]; }
-    protected void setCell(int coordinate, int state){ board[getX(coordinate)][getY(coordinate)] = state; }
 }

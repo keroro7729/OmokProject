@@ -117,4 +117,6 @@ public class OpenRule {
     public int[][] getBoard(){ return board; }
     public List<Integer> getHistory(){ return history; }
     public GameState getState(){ return state; }
+    protected int getCell(int coordinate){ return board[getX(coordinate)][getY(coordinate)]; }
+    protected void setCell(int coordinate, int state){ board[getX(coordinate)][getY(coordinate)] = state; }
 }

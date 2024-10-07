@@ -6,8 +6,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -16,30 +14,28 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.omokapp.Api.ApiManager;
 import com.example.omokapp.Enums.GameState;
 import com.example.omokapp.Enums.PutError;
-import com.example.omokapp.OmokBoards.BoardView;
 import com.example.omokapp.OmokBoards.OnBoardTouchListener;
-import com.example.omokapp.OmokRules.OpenRule;
-import com.example.omokapp.OmokRules.RenjuEngine;
+import com.example.omokapp.OmokRules.PracticeEngine;
 import com.example.omokapp.OmokRules.RenjuRule;
 import com.example.omokapp.R;
+import com.example.omokapp.SingleTons.Storage;
 import com.example.omokapp.databinding.FragmentHomeBinding;
 
 import java.util.List;
 
 public class HomeFragment extends Fragment {
 
-    private boolean initialized;
     private HomeViewModel viewModel;
     private FragmentHomeBinding binding;
-    private RenjuEngine engine;
+    private PracticeEngine engine;
     private ApiManager apiManager;
 
     @Override
     public void onAttach(@NonNull Context context){
         super.onAttach(context);
-        engine = new RenjuEngine();
+        Storage.getInstance(context);
+        engine = new PracticeEngine(new RenjuRule());
         apiManager = new ApiManager(getString(R.string.base_url));
-        initialized = false;
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -81,7 +77,7 @@ public class HomeFragment extends Fragment {
         binding.sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                List<Integer> history = engine.getHistory();
+                String history = engine.getHistoryString();
                 GameState state = engine.getState();
                 apiManager.sendGameHistory(history, state);
                 // save to view model

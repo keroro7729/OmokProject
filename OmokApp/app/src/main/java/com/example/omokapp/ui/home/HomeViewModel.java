@@ -21,15 +21,4 @@ public class HomeViewModel extends ViewModel {
 
     public String getNumber(){ return number.getValue().toString(); }
     public void setNumber(int n){ number.setValue(n); }
-    public int addNumber(int n){
-        int value = number.getValue() + n;
-        number.setValue(value);
-        return value;
-    }
-    public int minusNumber(int n){
-        int value = number.getValue() - n;
-        if(value < 1) value = 1;
-        number.setValue(value);
-        return value;
-    }
 }
