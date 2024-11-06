@@ -27,6 +27,12 @@
                 android:layout_height="wrap_content"
                 android:text="SEND" />
 
+            <Button
+                android:id="@+id/ai_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ai put" />
+
         </LinearLayout>
 
         <com.example.omokapp.OmokBoards.BoardView

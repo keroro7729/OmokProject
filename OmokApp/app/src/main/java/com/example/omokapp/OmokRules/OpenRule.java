@@ -109,7 +109,7 @@ public class OpenRule {
     }
 
     protected int getColor(int x, int y){
-        if(board[x][y] == 0) return -1;
+        if(board[x][y] <= 0) return -1;
         else if(board[x][y]%2 == 1) return 1;
         else return 2;
     }

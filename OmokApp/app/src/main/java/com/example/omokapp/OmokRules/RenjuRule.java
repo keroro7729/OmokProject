@@ -6,18 +6,31 @@ import com.example.omokapp.Enums.CellState;
 import com.example.omokapp.Enums.GameState;
 import com.example.omokapp.Enums.PutError;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
 public class RenjuRule extends OpenRule {
 
-    private static final int[][] FOUR_EXCEPTIONS = {
+    public RenjuRule(){
+        super();
+    }
+    public RenjuRule(RenjuRule copy){
+        for(int i=0; i<BOARD_SIZE; i++)
+            for(int j=0; j<BOARD_SIZE; j++)
+                this.board[i][j] = copy.board[i][j];
+        this.history = new ArrayList<>(copy.history);
+        this.state = copy.state;
+        verifyBoard();
+    }
+
+    protected static final int[][] FOUR_EXCEPTIONS = {
             {-1, 1, 1, 1, 0, 0, 0, 1, 1, 1, -1},
             {-1, 1, 0, 1, 0, 1, 0, 1, -1}
     };
-    private static final int[] FIVE = {-1, 1, 1, 1, 1, 1, -1};
-    private static final int[] OPEN_FOUR = {-1, 0, 1, 1, 1, 1, 0, -1};
+    protected static final int[] FIVE = {-1, 1, 1, 1, 1, 1, -1};
+    protected static final int[] OPEN_FOUR = {-1, 0, 1, 1, 1, 1, 0, -1};
 
     @Override
     public int put(int x, int y){
@@ -174,22 +187,25 @@ public class RenjuRule extends OpenRule {
         return result;
     }
 
-    protected int almostMatch(int x, int y, int d, int[] pattern){
+    private int almostMatch(int x, int y, int d, int[] pattern){
+        return almostMatch(x, y, d, pattern, 1);
+    }
+    protected int almostMatch(int x, int y, int d, int[] pattern, int color){
         int coor = -1;
         for(int i=0; i<pattern.length; i++){
             int dx = x + DIRX[d] * i, dy = y + DIRY[d] * i;
             if(pattern[i] == -1){
-                if(indexOut(dx, dy)) continue;
-                else if(isBlack(dx, dy)) return -1;
+                if(color == 1 && !indexOut(dx, dy) && isBlack(dx, dy))
+                    return -1;
             }
             else if(pattern[i] == 0){
                 if(indexOut(dx, dy)) return -1;
-                else if(board[dx][dy] != 0) return -1;
+                else if(!putable(dx, dy, color)) return -1;
             }
             else if(pattern[i] == 1){
                 if(indexOut(dx, dy)) return -1;
-                if(!isBlack(dx, dy)){
-                    if(board[dx][dy] != 0) return -1;
+                if(color != getColor(dx, dy)){
+                    if(!putable(dx, dy, color)) return -1;
                     else if(coor == -1) coor = getCoordinate(dx, dy);
                     else return -1;
                 }
@@ -197,21 +213,23 @@ public class RenjuRule extends OpenRule {
         }
         return coor;
     }
-
-    protected boolean perfectMatch(int x, int y, int d, int[] pattern){
+    private boolean perfectMatch(int x, int y, int d, int[] pattern){
+        return perfectMatch(x, y, d, pattern, 1);
+    }
+    protected boolean perfectMatch(int x, int y, int d, int[] pattern, int color){
         for(int i=0; i<pattern.length; i++){
             int dx = x + DIRX[d] * i, dy = y + DIRY[d] * i;
             if(pattern[i] == -1){
-                if(indexOut(dx, dy)) continue;
-                else if(isBlack(dx, dy)) return false;
+                if(color == 1 && !indexOut(dx, dy) && isBlack(dx, dy))
+                    return false;
             }
             else if(pattern[i] == 0){
                 if(indexOut(dx, dy)) return false;
-                else if(board[dx][dy] != 0) return false;
+                else if(putable(dx, dy, color)) return false;
             }
             else if(pattern[i] == 1){
                 if(indexOut(dx, dy)) return false;
-                else if(!isBlack(dx, dy)) return false;
+                else if(color != getColor(dx, dy)) return false;
             }
         }
         return true;
@@ -219,5 +237,12 @@ public class RenjuRule extends OpenRule {
 
     protected boolean isBlack(int x, int y){
         return board[x][y]%2 == 1;
+    }
+    protected boolean putable(int x, int y, int color){
+        if(color == 1)
+            return board[x][y] == 0;
+        else if(color == 2)
+            return board[x][y] <= 0;
+        else throw new RuntimeException("RenjuRule putable Error illegal argument color: "+color);
     }
 }

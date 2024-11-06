@@ -12,16 +12,19 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.omokapp.Api.ApiManager;
+import com.example.omokapp.DTO.AIRequest;
 import com.example.omokapp.Enums.GameState;
 import com.example.omokapp.Enums.PutError;
 import com.example.omokapp.OmokBoards.OnBoardTouchListener;
 import com.example.omokapp.OmokRules.PracticeEngine;
 import com.example.omokapp.OmokRules.RenjuRule;
 import com.example.omokapp.R;
-import com.example.omokapp.SingleTons.Storage;
+import com.example.omokapp.Tools.Storage;
 import com.example.omokapp.databinding.FragmentHomeBinding;
 
-import java.util.List;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class HomeFragment extends Fragment {
 
@@ -74,13 +77,37 @@ public class HomeFragment extends Fragment {
                 refresh();
             }
         });
+
+        binding.aiButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AIRequest request = new AIRequest(engine.getHistory());
+                Call<Integer> call = apiManager.getService().aiPut(request);
+                call.enqueue(new Callback<Integer>() {
+                    @Override
+                    public void onResponse(Call<Integer> call, Response<Integer> response) {
+                        if(response.isSuccessful()){
+                            engine.put(response.body());
+                        }
+                        else{
+                            Log.e("aiput error", "code "+response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Integer> call, Throwable t) {
+                        Log.e("aiput error", "err msg: "+t.getMessage());
+                    }
+                });
+            }
+        });
         binding.sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String history = engine.getHistoryString();
-                GameState state = engine.getState();
-                apiManager.sendGameHistory(history, state);
-                // save to view model
+                //String history = engine.getHistoryString();
+                //GameState state = engine.getState();
+                //apiManager.sendGameHistory(history, state);
+                apiManager.postGameData(engine.getHistory(), engine.getState());
             }
         });
         binding.prevprevBtn.setOnClickListener(new View.OnClickListener() {

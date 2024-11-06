@@ -4,8 +4,10 @@ import android.util.Log;
 
 import com.example.omokapp.DTO.AddOmokDataRequest;
 import com.example.omokapp.DTO.OmokData;
+import com.example.omokapp.DTO.PostGameDataRequest;
 import com.example.omokapp.Enums.GameState;
-import com.example.omokapp.SingleTons.Storage;
+import com.example.omokapp.Tools.Converter;
+import com.example.omokapp.Tools.Storage;
 
 import java.util.List;
 
@@ -31,6 +33,30 @@ public class ApiManager {
         storage = Storage.getInstance();
     }
     public ApiService getService(){ return service; }
+
+    public void postGameData(List<Integer> history, GameState state){
+        PostGameDataRequest request = new PostGameDataRequest();
+        request.setGameLog(Converter.toString(history));
+        request.setResultCode(state.getCode());
+
+        Call<Void> call = service.postGameData(request);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+
+                if(!response.isSuccessful()){
+                    Log.e(TAG, "request: "+call.request());
+                    Log.e(TAG, "http code: "+response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e(TAG, "request: "+call.request());
+                Log.e(TAG, "network error: "+t.getMessage());
+            }
+        });
+    }
 
     public void sendGameHistory(String history, GameState state){
         String dataFile = storage.get(OMOK_DATA);

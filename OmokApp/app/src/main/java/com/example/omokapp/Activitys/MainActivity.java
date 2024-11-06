@@ -3,7 +3,6 @@ package com.example.omokapp.Activitys;
 import android.os.Bundle;
 
 import com.example.omokapp.R;
-import com.example.omokapp.SingleTons.Storage;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
